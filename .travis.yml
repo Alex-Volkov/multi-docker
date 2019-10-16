@@ -1,0 +1,19 @@
+sudo: required
+services:
+        - docker
+before_install:
+        - docker build -t jeromevaleska/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+        - docker run jeromevaleska/react-test npm test -- CI=true
+
+after_success:
+        - docker build -t jeromevaleska/multi-client ./client
+        - docker build -t jeromevaleska/multi-nginx ./nginx 
+        - docker build -t jeromevaleska/multi-server ./server
+        - docker build -t jeromevaleska/multi-worker ./worker
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+        - docker push jeromevaleska/multi-client 
+        - docker push jeromevaleska/multi-nginx
+        - docker push jeromevaleska/multi-server 
+        - docker push jeromevaleska/multi-worker 
